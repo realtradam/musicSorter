@@ -6,11 +6,13 @@ require 'fileutils'
 
 #Stores errors when reading tags
 errors = Array.new
+illegalCharacter = Array['/', '?', '\\', ':', '*', '"', '<', '>', '|']
 
 #All extensions you want considered and moved
-fileExtensions = Array["mp3", "m4a", "ogg", "wma"]
+fileExtensions = Array["mp3", "m4a", "wma"]#Note that .ogg files do not work, tags do not get read correctly
 for extension in fileExtensions
 	for song in Dir.glob("**/*." + extension)
+		puts song
 		#Loads the tag of the song
 		songData = FFruby::File.new(song)
 		
@@ -33,17 +35,24 @@ for extension in fileExtensions
 			next
 		end
 		if songData.track == nil
-			errors.push("ERROR, TRACK NUMBER IS NIL FOR: " + song)
-			next
+			errors.push("WARNING, TRACK NUMBER IS NIL BUT MOVED ANYWAY FOR: " + song)
 		end
 	
 		#Loads all the values we will want to use
-		#Also removes any slashes in the string, will causes errors when making folders if they arent
-		title = songData.title.delete '/'
-		genre = songData.genre.delete '/'
-		artist = songData.artist.delete '/'
-		album = songData.album.delete '/'
+		#Also removes any illegal characters in the string, will causes errors when making folders or filenames if they arent
+		title = songData.title
+		genre = songData.genre
+		artist = songData.artist
+		album = songData.album
 		track = songData.track.to_s.split('/')[0]
+		
+		for character in illegalCharacter
+			title = title.delete character
+			genre = genre.delete character
+			artist = artist.delete character
+			album = album.delete character
+			track = track.delete character
+		end
 		
 		#Adds a slash to the end, to signify it is a folder and to simplify later code
 		songFolderGenre = genre + "/"
@@ -60,26 +69,31 @@ for extension in fileExtensions
 		
 		#Individually checking each folder if it exists, if not make it
 		#Once the folder is confirmed to exist, it will move and rename the song to the correct location
-		if Dir.exist?(songFolderGenre)
-			if Dir.exist?(songFolderGenre + songFolderArtist)
-				if Dir.exist?(songFolderGenre + songFolderArtist + songFolderAlbum)
-					if !File.exist?(songFolderGenre + songFolderArtist + songFolderAlbum + songFileName)
+		begin
+			if Dir.exist?(songFolderGenre)
+				if Dir.exist?(songFolderGenre + songFolderArtist)
+					if Dir.exist?(songFolderGenre + songFolderArtist + songFolderAlbum)
+						if !File.exist?(songFolderGenre + songFolderArtist + songFolderAlbum + songFileName)
+							FileUtils.mv song, songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
+						end
+					else
+						Dir.mkdir(songFolderGenre + songFolderArtist + songFolderAlbum)
 						FileUtils.mv song, songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
 					end
 				else
+					Dir.mkdir(songFolderGenre + songFolderArtist)
 					Dir.mkdir(songFolderGenre + songFolderArtist + songFolderAlbum)
 					FileUtils.mv song, songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
 				end
 			else
+				Dir.mkdir(songFolderGenre)
 				Dir.mkdir(songFolderGenre + songFolderArtist)
 				Dir.mkdir(songFolderGenre + songFolderArtist + songFolderAlbum)
 				FileUtils.mv song, songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
 			end
-		else
-			Dir.mkdir(songFolderGenre)
-			Dir.mkdir(songFolderGenre + songFolderArtist)
-			Dir.mkdir(songFolderGenre + songFolderArtist + songFolderAlbum)
-			FileUtils.mv song, songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
+		rescue Errno::ENOENT
+			errors.push("ERROR, FILE OR FOLDER NAME ERROR AT " + song)
+			next
 		end
 	end
 end
