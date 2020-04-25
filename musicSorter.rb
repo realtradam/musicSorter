@@ -18,7 +18,7 @@ for extension in fileExtensions
 		songData = FFruby::File.new(song)
 		
 		#Checks if any of the fields are not filled out
-		#If they arent, save the song to an error log and skip it, except for track number
+		#If they arent, save the song to an error log and skip it
 		if songData.title == nil
 			errors.push("ERROR, TITLE IS NIL FOR: " + song)
 			next
@@ -36,7 +36,8 @@ for extension in fileExtensions
 			next
 		end
 		if songData.track == nil
-			errors.push("WARNING, TRACK NUMBER IS NIL BUT MOVED ANYWAY FOR: " + song)
+			errors.push("ERROR, TRACK NUMBER IS FOR: " + song)
+			next
 		end
 	
 		#Loads all the values we will want to use
