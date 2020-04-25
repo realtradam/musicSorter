@@ -4,8 +4,9 @@ require 'fileutils'
 
 #Code written by Tradam --> https://github.com/realtradam
 
-#Stores errors when reading tags
+#Stores errors that happen
 errors = Array.new
+#Characters that are removed from the file/folder names as they are considered illegal in Windows
 illegalCharacter = Array['/', '?', '\\', ':', '*', '"', '<', '>', '|']
 
 #All extensions you want considered and moved
@@ -17,7 +18,7 @@ for extension in fileExtensions
 		songData = FFruby::File.new(song)
 		
 		#Checks if any of the fields are not filled out
-		#If they arent, save the song to an error log and skip it
+		#If they arent, save the song to an error log and skip it, except for track number
 		if songData.title == nil
 			errors.push("ERROR, TITLE IS NIL FOR: " + song)
 			next
@@ -46,6 +47,7 @@ for extension in fileExtensions
 		album = songData.album
 		track = songData.track.to_s.split('/')[0]
 		
+		#Purges illegal characters
 		for character in illegalCharacter
 			title = title.delete character
 			genre = genre.delete character
@@ -91,7 +93,7 @@ for extension in fileExtensions
 				Dir.mkdir(songFolderGenre + songFolderArtist + songFolderAlbum)
 				FileUtils.mv song, songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
 			end
-		rescue Errno::ENOENT
+		rescue Errno::ENOENT#Incase the program tries to save to a folder not yet created, shouldnt ever happen
 			errors.push("ERROR, FILE OR FOLDER NAME ERROR AT " + song)
 			next
 		end
