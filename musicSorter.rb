@@ -9,6 +9,11 @@ errors = Array.new
 #Characters that are removed from the file/folder names as they are considered illegal in Windows
 illegalCharacter = Array['/', '?', '\\', ':', '*', '"', '<', '>', '|']
 
+songsDirectory = ARGV[0]#Where you want your organized songs to end up
+if !Dir.exist?(songsDirectory)
+	puts "Invalid Directory Given"
+end
+
 #All extensions you want considered and moved
 fileExtensions = Array["mp3", "m4a", "wma"]#Note that .ogg files do not work, tags do not get read correctly
 for extension in fileExtensions
@@ -70,29 +75,18 @@ for extension in fileExtensions
 		#How we want our songs to be formatted
 		songFileName = track + title + "." + extension
 		
-		#Individually checking each folder if it exists, if not make it
+		#Check if the folder exists, if not make it
 		#Once the folder is confirmed to exist, it will move and rename the song to the correct location
 		begin
-			if Dir.exist?(songFolderGenre)
-				if Dir.exist?(songFolderGenre + songFolderArtist)
-					if Dir.exist?(songFolderGenre + songFolderArtist + songFolderAlbum)
-						if !File.exist?(songFolderGenre + songFolderArtist + songFolderAlbum + songFileName)
-							FileUtils.mv song, songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
-						end
-					else
-						Dir.mkdir(songFolderGenre + songFolderArtist + songFolderAlbum)
-						FileUtils.mv song, songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
-					end
+			if Dir.exist?(songsDirectory + songFolderGenre + songFolderArtist + songFolderAlbum)
+				if !File.exist?(songsDirectory + songFolderGenre + songFolderArtist + songFolderAlbum + songFileName)
+					FileUtils.mv song, songsDirectory + songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
 				else
-					Dir.mkdir(songFolderGenre + songFolderArtist)
-					Dir.mkdir(songFolderGenre + songFolderArtist + songFolderAlbum)
-					FileUtils.mv song, songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
+					errors.push("ERROR, SONG ALREADY EXISTS AT " + songsDirectory + songFolderGenre + songFolderArtist + songFolderAlbum + songFileName + " CAN'T MOVE FROM " + song)
 				end
 			else
-				Dir.mkdir(songFolderGenre)
-				Dir.mkdir(songFolderGenre + songFolderArtist)
-				Dir.mkdir(songFolderGenre + songFolderArtist + songFolderAlbum)
-				FileUtils.mv song, songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
+				FileUtils.mkdir_p(songsDirectory + songFolderGenre + songFolderArtist + songFolderAlbum)
+				FileUtils.mv song, songsDirectory+ songFolderGenre + songFolderArtist + songFolderAlbum + songFileName
 			end
 		rescue Errno::ENOENT#Incase the program tries to save to a folder not yet created, shouldnt ever happen
 			errors.push("ERROR, FILE OR FOLDER NAME ERROR AT " + song)
