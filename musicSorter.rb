@@ -10,8 +10,13 @@ errors = Array.new
 illegalCharacter = Array['/', '?', '\\', ':', '*', '"', '<', '>', '|']
 
 songsDirectory = ARGV[0]#Where you want your organized songs to end up
+if songsDirectory == nil
+	puts "Invalid Directory Given"
+	exit(1)
+end
 if !Dir.exist?(songsDirectory)
 	puts "Invalid Directory Given"
+	exit(1)
 end
 
 #All extensions you want considered and moved
@@ -99,3 +104,4 @@ end
 for error in errors
 	puts error
 end
+
