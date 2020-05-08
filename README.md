@@ -1,5 +1,5 @@
 # Music Sorter
-musicSorter.rb is a music sorting script I made :D Feel free to use this code as you will, I would appreciate being credited if you do.
+musicSorter.rb is a music sorting script I made :D
 
 ## How to use it?
 Will sort your music nicely into folders, using the metadata found within the song files. Just run the script in the directory where all your unsorted songs reside, and give the script the location where you would like your sorted songs to end up in as the argument
